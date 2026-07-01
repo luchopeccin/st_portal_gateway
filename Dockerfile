@@ -4,7 +4,12 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm install
 
-# ── Stage 2: build (compila TypeScript a dist/) ────────────
+# ── Stage 2: desarrollo local (todas las devDeps disponibles) ─
+FROM deps AS dev
+EXPOSE 3001
+CMD ["npm", "run", "dev"]
+
+# ── Stage 3: build (compila TypeScript a dist/) ────────────
 FROM deps AS build
 COPY . .
 RUN npm run build
