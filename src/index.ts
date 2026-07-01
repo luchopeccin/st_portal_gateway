@@ -9,6 +9,7 @@ app.use(cors({ origin: /^http:\/\/localhost(:\d+)?$/ }));
 app.use(express.json());
 
 const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1337';
+const STRAPI_PUBLIC_URL = process.env.STRAPI_PUBLIC_URL || STRAPI_URL;
 const STRAPI_API_TOKEN = process.env.STRAPI_API_TOKEN || '';
 const CACHE_TTL = parseInt(process.env.CACHE_TTL_SECONDS || '60', 10);
 
@@ -80,7 +81,7 @@ function toNoticia(entry: StrapiEntry): Noticia {
     categoria: (entry.categoria as string) ?? '',
     titulo: (entry.titulo as string) ?? '',
     fecha: (entry.fechaPublicacion as string) ?? '',
-    img: imagen?.url ? `${STRAPI_URL}${imagen.url}` : null,
+    img: imagen?.url ? `${STRAPI_PUBLIC_URL}${imagen.url}` : null,
   };
 }
 
