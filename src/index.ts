@@ -42,6 +42,28 @@ async function fetchFromStrapi(path: string): Promise<StrapiListResponse> {
   return res.json() as Promise<StrapiListResponse>;
 }
 
+interface StrapiEntryResponse {
+  data: StrapiEntry | null;
+  meta?: unknown;
+}
+
+async function fetchOneFromStrapi(path: string): Promise<StrapiEntryResponse> {
+  const url = `${STRAPI_URL}/api/${path}`;
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (STRAPI_API_TOKEN) {
+    headers.Authorization = `Bearer ${STRAPI_API_TOKEN}`;
+  }
+
+  const res = await fetch(url, { headers });
+  if (res.status === 404) {
+    return { data: null };
+  }
+  if (!res.ok) {
+    throw new Error(`Strapi respondió ${res.status} para ${path}`);
+  }
+  return res.json() as Promise<StrapiEntryResponse>;
+}
+
 function withCache(handler: (req: express.Request) => Promise<unknown>) {
   return async (req: express.Request, res: express.Response) => {
     const cacheKey = req.originalUrl;
@@ -53,6 +75,9 @@ function withCache(handler: (req: express.Request) => Promise<unknown>) {
 
     try {
       const data = await handler(req);
+      if (data === undefined) {
+        return res.status(404).json({ error: 'No encontrado' });
+      }
       cache.set(cacheKey, data);
       res.set('X-Cache', 'MISS');
       res.json(data);
@@ -69,19 +94,23 @@ function withCache(handler: (req: express.Request) => Promise<unknown>) {
 // coinciden con los Content-Types que termines creando en Strapi.
 
 interface Noticia {
+  id: string;
   categoria: string;
   titulo: string;
   fecha: string;
   img: string | null;
+  contenido: string;
 }
 
 function toNoticia(entry: StrapiEntry): Noticia {
   const imagen = entry.imagen as { url?: string } | undefined;
   return {
+    id: entry.documentId ?? String(entry.id),
     categoria: (entry.categoria as string) ?? '',
     titulo: (entry.titulo as string) ?? '',
     fecha: (entry.fechaPublicacion as string) ?? '',
     img: imagen?.url ? `${STRAPI_PUBLIC_URL}${imagen.url}` : null,
+    contenido: (entry.contenido as string) ?? '',
   };
 }
 
@@ -125,6 +154,16 @@ app.get(
       'noticias?populate=imagen&sort=fechaPublicacion:desc&pagination[pageSize]=20'
     );
     return data.map(toNoticia);
+  })
+);
+
+app.get(
+  '/api/noticias/:id',
+  withCache(async (req) => {
+    const { data } = await fetchOneFromStrapi(
+      `noticias/${req.params.id}?populate=imagen`
+    );
+    return data ? toNoticia(data) : undefined;
   })
 );
 
