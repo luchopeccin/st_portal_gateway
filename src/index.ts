@@ -115,18 +115,23 @@ function toNoticia(entry: StrapiEntry): Noticia {
 }
 
 interface Evento {
+  id: string;
   titulo: string;
   fechaInicio: string;
   lugar: string | null;
   descripcion: string | null;
+  img: string | null;
 }
 
 function toEvento(entry: StrapiEntry): Evento {
+  const imagen = entry.imagen as { url?: string } | undefined;
   return {
+    id: entry.documentId ?? String(entry.id),
     titulo: (entry.titulo as string) ?? '',
     fechaInicio: (entry.fechaInicio as string) ?? '',
     lugar: (entry.lugar as string) ?? null,
     descripcion: (entry.descripcion as string) ?? null,
+    img: imagen?.url ? `${STRAPI_PUBLIC_URL}${imagen.url}` : null,
   };
 }
 
@@ -171,9 +176,19 @@ app.get(
   '/api/eventos',
   withCache(async () => {
     const { data } = await fetchFromStrapi(
-      'eventos?populate=*&sort=fechaInicio:asc&pagination[pageSize]=20'
+      'eventos?populate=imagen&sort=fechaInicio:asc&pagination[pageSize]=20'
     );
     return data.map(toEvento);
+  })
+);
+
+app.get(
+  '/api/eventos/:id',
+  withCache(async (req) => {
+    const { data } = await fetchOneFromStrapi(
+      `eventos/${req.params.id}?populate=imagen`
+    );
+    return data ? toEvento(data) : undefined;
   })
 );
 
