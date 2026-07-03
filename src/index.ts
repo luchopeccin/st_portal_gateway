@@ -178,7 +178,7 @@ app.get(
   '/api/noticias',
   withCache(async () => {
     const { data } = await fetchFromStrapi(
-      'noticias?populate=imagen&sort=fechaPublicacion:desc&pagination[pageSize]=20'
+      'noticias?populate=imagen&sort=fechaPublicacion:desc&pagination[pageSize]=50'
     );
     return data.map(toNoticia);
   })
