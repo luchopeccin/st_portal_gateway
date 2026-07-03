@@ -64,6 +64,24 @@ async function fetchOneFromStrapi(path: string): Promise<StrapiEntryResponse> {
   return res.json() as Promise<StrapiEntryResponse>;
 }
 
+async function createInStrapi(path: string, payload: unknown): Promise<StrapiEntryResponse> {
+  const url = `${STRAPI_URL}/api/${path}`;
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (STRAPI_API_TOKEN) {
+    headers.Authorization = `Bearer ${STRAPI_API_TOKEN}`;
+  }
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ data: payload }),
+  });
+  if (!res.ok) {
+    throw new Error(`Strapi respondió ${res.status} para ${path}`);
+  }
+  return res.json() as Promise<StrapiEntryResponse>;
+}
+
 function withCache(handler: (req: express.Request) => Promise<unknown>) {
   return async (req: express.Request, res: express.Response) => {
     const cacheKey = req.originalUrl;
@@ -205,6 +223,24 @@ app.get(
     return data.map(toOrdenanza);
   })
 );
+
+const CATEGORIAS_RECLAMO = ['reclamo', 'sugerencia', 'habilitación', 'consulta'];
+
+app.post('/api/reclamos', async (req, res) => {
+  const { nombre, email, categoria, mensaje } = req.body ?? {};
+
+  if (!nombre || !email || !mensaje || !CATEGORIAS_RECLAMO.includes(categoria)) {
+    return res.status(400).json({ error: 'Faltan campos requeridos o la categoría no es válida' });
+  }
+
+  try {
+    await createInStrapi('reclamos', { nombre, email, categoria, mensaje });
+    res.status(201).json({ status: 'ok' });
+  } catch (err) {
+    console.error('Error al crear reclamo:', (err as Error).message);
+    res.status(502).json({ error: 'No se pudo enviar el mensaje, intentá más tarde' });
+  }
+});
 
 app.get('/api/ping', (_req, res) => {
   res.json({ status: 'ok', message: 'Gateway operativo', timestamp: new Date().toISOString() });
