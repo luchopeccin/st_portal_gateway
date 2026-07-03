@@ -135,18 +135,22 @@ function toEvento(entry: StrapiEntry): Evento {
   };
 }
 
-interface Documento {
+interface Ordenanza {
+  id: string;
+  numero: string;
   titulo: string;
   fecha: string;
   url: string | null;
 }
 
-function toDocumento(entry: StrapiEntry): Documento {
+function toOrdenanza(entry: StrapiEntry): Ordenanza {
   const archivo = entry.archivo as { url?: string } | undefined;
   return {
+    id: entry.documentId ?? String(entry.id),
+    numero: (entry.numero as string) ?? '',
     titulo: (entry.titulo as string) ?? '',
     fecha: (entry.fecha as string) ?? '',
-    url: archivo?.url ? `${STRAPI_URL}${archivo.url}` : null,
+    url: archivo?.url ? `${STRAPI_PUBLIC_URL}${archivo.url}` : null,
   };
 }
 
@@ -193,12 +197,12 @@ app.get(
 );
 
 app.get(
-  '/api/documentos',
+  '/api/ordenanzas',
   withCache(async () => {
     const { data } = await fetchFromStrapi(
-      'documentos?populate=archivo&sort=fecha:desc&pagination[pageSize]=50'
+      'ordenanzas?populate=archivo&sort=fecha:desc&pagination[pageSize]=50'
     );
-    return data.map(toDocumento);
+    return data.map(toOrdenanza);
   })
 );
 
