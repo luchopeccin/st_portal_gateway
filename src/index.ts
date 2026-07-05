@@ -5,7 +5,19 @@ import NodeCache from 'node-cache';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors({ origin: /^http:\/\/localhost(:\d+)?$/ }));
+const TUNNEL_ORIGIN = process.env.TUNNEL_ORIGIN;
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      const allowed =
+        !origin ||
+        /^http:\/\/localhost(:\d+)?$/.test(origin) ||
+        /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/.test(origin) ||
+        (TUNNEL_ORIGIN !== undefined && origin === TUNNEL_ORIGIN);
+      callback(null, allowed);
+    },
+  })
+);
 app.use(express.json());
 
 const STRAPI_URL = process.env.STRAPI_URL || 'http://localhost:1337';
