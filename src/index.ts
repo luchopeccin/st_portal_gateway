@@ -172,6 +172,24 @@ function toOrdenanza(entry: StrapiEntry): Ordenanza {
   };
 }
 
+interface MenuItemNode {
+  label: string;
+  href: string;
+  children?: MenuItemNode[];
+}
+
+function toMenuItem(entry: StrapiEntry): MenuItemNode {
+  const hijos = ((entry.hijos as StrapiEntry[] | undefined) ?? [])
+    .slice()
+    .sort((a, b) => ((a.orden as number) ?? 0) - ((b.orden as number) ?? 0))
+    .map(toMenuItem);
+  return {
+    label: ((entry.etiqueta as string) ?? '').trim(),
+    href: ((entry.enlace as string) ?? '').trim(),
+    ...(hijos.length > 0 ? { children: hijos } : {}),
+  };
+}
+
 // ── Endpoints ────────────────────────────────────────────
 
 app.get(
@@ -221,6 +239,19 @@ app.get(
       'ordenanzas?populate=archivo&sort=fecha:desc&pagination[pageSize]=50'
     );
     return data.map(toOrdenanza);
+  })
+);
+
+app.get(
+  '/api/menu',
+  withCache(async () => {
+    const { data } = await fetchFromStrapi(
+      'menu-items?filters[padre][id][$null]=true&populate[hijos][populate][hijos]=true&pagination[pageSize]=100'
+    );
+    return data
+      .slice()
+      .sort((a, b) => ((a.orden as number) ?? 0) - ((b.orden as number) ?? 0))
+      .map(toMenuItem);
   })
 );
 
