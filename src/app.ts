@@ -8,6 +8,7 @@ import eventosRoutes from './modules/eventos/eventos.routes';
 import ordenanzasRoutes from './modules/ordenanzas/ordenanzas.routes';
 import reclamosRoutes from './modules/reclamos/reclamos.routes';
 import menuRoutes from './modules/menu/menu.routes';
+import flierRoutes from './modules/flier/flier.routes';
 import pingRoutes from './modules/ping/ping.routes';
 import { errorHandler } from './middlewares/errorHandler';
 import { notFound } from './middlewares/notFound';
@@ -27,6 +28,7 @@ app.use('/api/ordenanzas', ordenanzasRoutes);
 // Límite más estricto: único endpoint de escritura pública del Gateway.
 app.use('/api/reclamos', rateLimit({ windowMs: 15 * 60_000, limit: 20 }), reclamosRoutes);
 app.use('/api/menu', menuRoutes);
+app.use('/api/flier', flierRoutes);
 app.use('/api/ping', pingRoutes);
 
 app.use(notFound);
