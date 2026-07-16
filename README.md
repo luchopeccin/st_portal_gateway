@@ -32,6 +32,8 @@ npm install
 | GET | `/api/eventos/:id` | Detalle de un evento (404 si no existe) |
 | GET | `/api/ordenanzas` | Listado de ordenanzas (Strapi `ordenanzas`, ordenadas por fecha desc, hasta 50) |
 | POST | `/api/reclamos` | Crea un reclamo/sugerencia/consulta (valida `nombre`, `email`, `categoria`, `mensaje`) |
+| GET | `/api/menu` | Árbol del menú de navegación (Strapi `menu-items`, autoreferencial, hasta 3 niveles) |
+| GET | `/api/flier` | Flier de bienvenida del home (Strapi single type `Flier`). Devuelve `null` (200) si no hay ninguno activo/publicado — no es un error |
 
 Todos los GET responden `502` si Strapi no está disponible o devuelve error — el frontend cae a datos estáticos de fallback en ese caso (ver `PortalWeb/src/data.ts`).
 
@@ -48,7 +50,8 @@ Todos los GET responden `502` si Strapi no está disponible o devuelve error —
 ## Integración con Strapi y caché
 
 - Todas las lecturas (`GET`) pasan por un caché en memoria (`node-cache`) con TTL configurable — evita pegarle a Strapi en cada visita. La respuesta incluye el header `X-Cache: HIT`/`MISS`.
-- La normalización de los campos de Strapi al shape que espera el frontend vive en las funciones `toNoticia`, `toEvento`, `toOrdenanza` (`src/index.ts`) — si cambian los nombres de campo en un Content-Type de Strapi, es el único lugar a ajustar.
+- La normalización de los campos de Strapi al shape que espera el frontend vive en un `dto.ts` por módulo (`src/modules/<recurso>/<recurso>.dto.ts`) — si cambian los nombres de campo en un Content-Type de Strapi, es el único lugar a ajustar para ese recurso.
+- `GET /api/flier` normaliza el campo `enlace` para que siempre tenga protocolo (antepone `https://` si en Strapi se cargó sin `http(s)://`), y cachea también la respuesta `null` cuando no hay flier activo — un cambio de `activo` en Strapi puede tardar hasta `CACHE_TTL_SECONDS` en reflejarse en el sitio.
 - `POST /api/reclamos` reenvía el body a Strapi con el mismo `STRAPI_API_TOKEN` (que necesita permiso `create` sobre el Content-Type `Reclamo`, además de `find`/`findOne` sobre los demás — ver `strapi/README.md`).
 
 ## Configuración
