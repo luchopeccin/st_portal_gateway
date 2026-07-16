@@ -54,10 +54,18 @@ Todos los GET responden `502` si Strapi no está disponible o devuelve error —
 - `GET /api/flier` normaliza el campo `enlace` para que siempre tenga protocolo (antepone `https://` si en Strapi se cargó sin `http(s)://`), y cachea también la respuesta `null` cuando no hay flier activo — un cambio de `activo` en Strapi puede tardar hasta `CACHE_TTL_SECONDS` en reflejarse en el sitio.
 - `POST /api/reclamos` reenvía el body a Strapi con el mismo `STRAPI_API_TOKEN` (que necesita permiso `create` sobre el Content-Type `Reclamo`, además de `find`/`findOne` sobre los demás — ver `strapi/README.md`).
 
+## Logging
+
+Logging estructurado con [pino](https://getpino.io) (`src/lib/logger.ts`) — JSON en cualquier entorno salvo `NODE_ENV=development`, donde se usa `pino-pretty` solo para que la terminal sea legible (lo que llega a Loki en un entorno real sigue siendo JSON). `pino-http` (`src/app.ts`) agrega un middleware que:
+
+- Loguea automáticamente cada request completada/con error (método, URL, status, `responseTime`).
+- Asigna un id de correlación por request (respeta el header `x-request-id` entrante, si no genera uno) disponible en `req.log` — cualquier log manual durante esa request (ej. `errorHandler.ts`) queda taggeado con el mismo id, para poder rastrear una request puntual en Grafana/Loki (`infra/docker-compose.observability.yml`).
+
 ## Configuración
 
 | Variable | Descripción |
 |---|---|
+| `NODE_ENV` | `development` habilita `pino-pretty`; cualquier otro valor emite JSON plano (default `development`) |
 | `PORT` | Puerto del servidor (default `3001`) |
 | `STRAPI_URL` | URL interna de Strapi (default `http://localhost:1337`; en Docker, `http://strapi:1337`) |
 | `STRAPI_PUBLIC_URL` | URL de Strapi accesible desde el browser, para armar URLs de imágenes/archivos (default: igual a `STRAPI_URL`) |
