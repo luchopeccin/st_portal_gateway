@@ -2,7 +2,10 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import pinoHttp from 'pino-http';
+import { randomUUID } from 'node:crypto';
 import { env } from './config/env';
+import { logger } from './lib/logger';
 import noticiasRoutes from './modules/noticias/noticias.routes';
 import eventosRoutes from './modules/eventos/eventos.routes';
 import ordenanzasRoutes from './modules/ordenanzas/ordenanzas.routes';
@@ -15,6 +18,11 @@ import { notFound } from './middlewares/notFound';
 
 export const app = express();
 
+// Cada request recibe un id de correlación (header `x-request-id` si el
+// cliente lo manda, si no lo genera pino-http) y un logger hijo en
+// `req.log` que lo incluye en todos sus logs — así se puede rastrear una
+// request específica en Grafana/Loki filtrando por ese id.
+app.use(pinoHttp({ logger, genReqId: (req) => (req.headers['x-request-id'] as string) || randomUUID() }));
 app.use(helmet());
 // Sin FRONTEND_ORIGIN seteada (caso actual de infra/), se preserva el
 // comportamiento de siempre: cualquier puerto local.

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 const schema = z.object({
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(3001),
   STRAPI_URL: z.string().url().default('http://localhost:1337'),
   STRAPI_PUBLIC_URL: z.string().url().optional(),
