@@ -10,6 +10,7 @@ import noticiasRoutes from './modules/noticias/noticias.routes';
 import eventosRoutes from './modules/eventos/eventos.routes';
 import ordenanzasRoutes from './modules/ordenanzas/ordenanzas.routes';
 import documentosRoutes from './modules/documentos/documentos.routes';
+import paginasRoutes from './modules/paginas/paginas.routes';
 import reclamosRoutes from './modules/reclamos/reclamos.routes';
 import menuRoutes from './modules/menu/menu.routes';
 import flierRoutes from './modules/flier/flier.routes';
@@ -35,6 +36,7 @@ app.use('/api/noticias', noticiasRoutes);
 app.use('/api/eventos', eventosRoutes);
 app.use('/api/ordenanzas', ordenanzasRoutes);
 app.use('/api/documentos', documentosRoutes);
+app.use('/api/paginas', paginasRoutes);
 // Límite más estricto: único endpoint de escritura pública del Gateway.
 app.use('/api/reclamos', rateLimit({ windowMs: 15 * 60_000, limit: 20 }), reclamosRoutes);
 app.use('/api/menu', menuRoutes);

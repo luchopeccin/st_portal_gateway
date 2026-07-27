@@ -34,6 +34,7 @@ npm install
 | POST | `/api/reclamos` | Crea un reclamo/sugerencia/consulta (valida `nombre`, `email`, `categoria`, `mensaje`) |
 | GET | `/api/menu` | Árbol del menú de navegación (Strapi `menu-items`, autoreferencial, hasta 3 niveles) |
 | GET | `/api/flier` | Flier de bienvenida del home (Strapi single type `Flier`). Devuelve `null` (200) si no hay ninguno activo/publicado — no es un error |
+| GET | `/api/paginas/:slug` | Página de contenido libre por `slug` (Strapi `paginas`, 404 si no existe) |
 
 Todos los GET responden `502` si Strapi no está disponible o devuelve error — el frontend cae a datos estáticos de fallback en ese caso (ver `PortalWeb/src/data.ts`).
 
