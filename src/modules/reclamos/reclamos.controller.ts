@@ -1,5 +1,8 @@
 import type { Request, Response } from 'express';
 import { asyncHandler } from '../../lib/asyncHandler';
+import { env } from '../../config/env';
+import { verifyTurnstileToken } from '../../clients/turnstile.client';
+import { ValidationError } from '../../lib/errors';
 import * as service from './reclamos.service';
 
 interface CreateBody {
@@ -10,6 +13,7 @@ interface CreateBody {
     mensaje: string;
     sitioWeb: string;
     iniciadoEn?: number;
+    turnstileToken: string;
   };
 }
 
@@ -35,6 +39,18 @@ export const createReclamo = asyncHandler(async (req: Request, res: Response) =>
     req.log.info({ email: body.email }, 'Reclamo descartado por honeypot/timing');
     res.status(201).json({ status: 'ok' });
     return;
+  }
+
+  // A diferencia del honeypot, acá SÍ se responde con un error real: un
+  // usuario real puede fallar el challenge por una razón legítima (token
+  // vencido, red lenta) y merece feedback para reintentar. Deshabilitado
+  // por completo mientras no haya TURNSTILE_SECRET_KEY (sin widget creado
+  // todavía en Cloudflare, ver Contacto.tsx).
+  if (env.TURNSTILE_SECRET_KEY) {
+    const valido = await verifyTurnstileToken(body.turnstileToken, req.ip);
+    if (!valido) {
+      throw new ValidationError('turnstile');
+    }
   }
 
   const { nombre, email, categoria, mensaje } = body;
