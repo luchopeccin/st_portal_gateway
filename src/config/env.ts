@@ -7,6 +7,9 @@ const schema = z.object({
   STRAPI_PUBLIC_URL: z.string().url().optional(),
   STRAPI_API_TOKEN: z.string().default(''),
   CACHE_TTL_SECONDS: z.coerce.number().default(60),
+  // Vacío = Turnstile deshabilitado (no bloquea /api/reclamos mientras no haya
+  // un site/secret key real de Cloudflare, ver ingress.tf y Contacto.tsx).
+  TURNSTILE_SECRET_KEY: z.string().default(''),
   // Sin whitelist explícita, se preserva el comportamiento actual (cualquier localhost:*).
   FRONTEND_ORIGIN: z.string().optional(),
 });

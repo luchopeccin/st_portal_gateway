@@ -15,5 +15,8 @@ export const createReclamoSchema = z.object({
     // reclamos.controller.ts para el chequeo.
     sitioWeb: z.string().optional().default(''),
     iniciadoEn: z.number().optional(),
+    // Vacío por default: mientras no haya un widget de Turnstile creado en
+    // Cloudflare, el controller no exige este campo (ver env.TURNSTILE_SECRET_KEY).
+    turnstileToken: z.string().optional().default(''),
   }),
 });
