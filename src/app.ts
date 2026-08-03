@@ -14,6 +14,7 @@ import paginasRoutes from './modules/paginas/paginas.routes';
 import reclamosRoutes from './modules/reclamos/reclamos.routes';
 import menuRoutes from './modules/menu/menu.routes';
 import flierRoutes from './modules/flier/flier.routes';
+import estadisticasRoutes from './modules/estadisticas/estadisticas.routes';
 import pingRoutes from './modules/ping/ping.routes';
 import { errorHandler } from './middlewares/errorHandler';
 import { notFound } from './middlewares/notFound';
@@ -41,6 +42,7 @@ app.use('/api/paginas', paginasRoutes);
 app.use('/api/reclamos', rateLimit({ windowMs: 15 * 60_000, limit: 20 }), reclamosRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/flier', flierRoutes);
+app.use('/api/estadisticas', estadisticasRoutes);
 app.use('/api/ping', pingRoutes);
 
 app.use(notFound);
